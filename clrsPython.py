@@ -28,6 +28,7 @@
 #########################################################################
 
 import numpy as np
+from random import randint, random
 
 """Base class for MaxHeap and MinHeap."""
 
@@ -799,3 +800,283 @@ class AdjacencyListGraph:
 				result += edge.strmap(mapping_func) + " "
 			result += "\n"
 		return result
+	
+class ForestNode:
+
+	def __init__(self, data):
+		"""Initialize forest node with itself as a parent adn rank 0."""
+		self.data = data
+		# The root is its own parent and is the representative.
+		self.parent = self
+		self.rank = 0
+
+	def __str__(self):
+		"""Return the string representation of the data in this node."""
+		return str(self.data)
+
+
+def make_set(x):
+	"""Make a singleton set containing object x."""
+	return ForestNode(x)
+
+
+def find_set(x):
+	"""Return the object that serves as the root of the set containing x."""
+	if x != x.parent:  # the root is its own parent
+		x.parent = find_set(x.parent)
+	return x.parent  # return the root
+
+
+def union(x, y):
+	"""Unite set with x and set with y. The original sets are destroyed.
+
+	Arguments:
+	x -- an object within a set
+	y -- an object within another set
+	"""
+	link(find_set(x), find_set(y))
+
+
+def link(x, y):
+	"""Link together two sets, given their root nodes. 
+
+	Arguments:
+	x -- the root node of one set
+	y -- the root node of another set
+	"""
+	# The root with larger rank becomes the parent of the root with the smaller rank.
+	if x.rank > y.rank:
+		y.parent = x  # x becomes the parent
+	else: 
+		x.parent = y  # y becomes the parent
+		if x.rank == y.rank:
+			y.rank += 1
+
+
+def print_find_path(x):
+	"""Print the find path starting from node x to the root."""
+	while x != x.parent:
+		print(x, end="->")
+		x = x.parent
+	print(x)
+
+def merge(A, p, q, r):
+	"""Merge two sorted sublists/subarrays to a larger sorted sublist/subarray.
+
+	Arguments:
+	A -- a list/array containing the sublists/subarrays to be merged
+	p -- index of the beginning of the first sublist/subarray
+	q -- index of the end of the first sublist/subarray;
+	the second sublist/subarray starts at index q+1
+	r -- index of the end of the second sublist/subarray
+	"""
+	# Copy the left and right sublists/subarrays.
+	# If A is a list, slicing creates a copy.
+	if type(A) is list:
+		left = A[p: q+1]
+		right = A[q+1: r+1]
+	# Otherwise a is a np.array, so create a copy with list().
+	else:
+		left = list(A[p: q+1])
+		right = list(A[q+1: r+1])
+
+	i = 0    # index into left sublist/subarray
+	j = 0    # index into right sublist/subarray
+	k = p    # index into a[p: r+1]
+
+	# Combine the two sorted sublists/subarrays by inserting into A
+	# the lesser exposed element of the two sublists/subarrays.
+	while i < len(left) and j < len(right):
+		if left[i] <= right[j]:
+			A[k] = left[i]
+			i += 1
+		else:
+			A[k] = right[j]
+			j += 1
+		k += 1
+
+	# After going through the left or right sublist/subarray, copy the 
+	# remainder of the other to the end of the list/array.
+	if i < len(left):  # copy remainder of left
+		A[k: r+1] = left[i:]
+	if j < len(right):  # copy remainder of right
+		A[k: r+1] = right[j:]
+
+
+def merge_sort(A, p=0, r=None):
+	"""Sort the elements in the sublist/subarray a[p:r+1].
+
+	Arguments:
+	A -- a list/array containing the sublist/subarray to be merged
+	p -- index of the beginning of the sublist/subarray (default = 0)
+	r -- index of the end of the sublist/subarray (default = None)
+	"""
+	# If r is not given, set to the index of the last element of the list/array.
+	if r is None:
+		r = len(A) - 1
+	if p >= r:  # 0 or 1 element?
+		return
+	q = (p+r) // 2            # midpoint of A[p: r]
+	merge_sort(A, p, q)       # recursively sort A[p: q]
+	merge_sort(A, q + 1, r)   # recursively sort A[q+1: r]
+	merge(A, p, q, r)         # merge A[p: q] and A[q+1: r] into A[p: r] 
+
+class KruskalEdge:
+
+    def __init__(self, u, v, weight=None):
+        """Initialize edge class that contains both endpoints and weight."""
+        self.u = u
+        self.v = v
+        if weight is not None:
+            self.weight = weight
+
+    def get_u(self):
+        """Return endpoint of vertex that edge starts."""
+        return self.u
+
+    def get_v(self):
+        """Return endpoint of vertex that edge ends."""
+        return self.v
+
+    def get_weight(self):
+        """Return weight of edge."""
+        return self.weight
+
+    def __le__(self, edge2):
+        """Compare weights for less than or equal to."""
+        return self.weight <= edge2.weight
+
+    def __str__(self):
+        """Print edge with endpoints and weight."""
+        return "(" + str(self.u) + ", " + str(self.v) + "), weight: " + str(self.weight)
+
+
+def kruskal(G):
+    """ Return the minimum spanning tree of a weighted, undirected graph G using Kruskal's algorithm."""
+    if G.is_directed():
+        raise RuntimeError("Graph should be undirected.")
+
+    card_V = G.get_card_V()
+    # Initialize an undirected, weighted, minimum spanning tree.
+    mst = AdjacencyListGraph(card_V, False, True)
+    # Keep an array of handles to disjoint-set objects.
+    forest = [None] * card_V
+    for v in range(card_V):
+        forest[v] = make_set(v)
+
+    # Make an array of weighted edges and sort it by weight.
+    edges = []
+
+    for u in range(card_V):
+        for edge in G.get_adj_list(u):
+            if u < edge.v:  # append edge only once
+                edges.append(KruskalEdge(u, edge.get_v(), edge.get_weight()))
+    merge_sort(edges)  # sort in nondecreasing order by weight
+
+    # Examine each edge.
+    for edge in edges:
+        u = forest[edge.get_u()]
+        v = forest[edge.get_v()]
+        # If the endpoints are not in the same tree, connect the trees.
+        if find_set(u) != find_set(v):
+            mst.insert_edge(edge.get_u(), edge.get_v(), edge.get_weight())
+            union(u, v)
+
+    return mst
+
+
+def prim(G, r):
+    """ Return the minimum spanning tree of a weighted, undirected graph G using Prim's algorithm.
+
+    Arguments:
+    G -- an undirected graph, represented by adjacency lists
+    r -- root vertex to start from
+    """
+    # Initialize keys and predecessors.
+    card_V = G.get_card_V()
+    pi = [None] * card_V
+    visited = [False] * card_V  # visited vertices are in the MST
+    key = [float('inf')] * card_V  # vertices not yet in MST
+    key[r] = 0  # root r has key 0
+
+    # Initialize the min-priority queue of vertices.
+    queue = MinHeapPriorityQueue(lambda u: key[u])
+    for u in range(card_V):
+        queue.insert(u)
+
+    while queue.get_size() > 0:
+        u = queue.extract_min()  # add u to the tree
+        visited[u] = True
+        for edge in G.get_adj_list(u):  # update the keys of u's non-tree neighbors
+            v = edge.get_v()
+            weight = edge.get_weight()
+            if not visited[v] and weight < key[v]:  # update v's key?
+                pi[v] = u
+                key[v] = weight
+                queue.decrease_key(v, weight) 	# update v in the min-priority queue
+
+    # Make the MST as an undirected, weighted graph.
+    mst = AdjacencyListGraph(card_V, False, True)
+    for i in range(card_V):
+        # Insert edges from vertices and their predecessors.
+        if pi[i] is not None:
+            mst.insert_edge(pi[i], i, key[i])
+
+    return mst
+
+
+def get_total_weight(G):
+    """Return the total weight of edges in an undirected graph G."""
+    total_weight = 0
+    for u in range(G.get_card_V()):
+        for edge in G.get_adj_list(u):
+            v = edge.get_v()
+            if u < v:
+                total_weight += edge.get_weight()
+    return total_weight
+
+
+def print_undirected_edges(G, vertices):
+    """Print the edges in an undirected graph G."""
+    for u in range(G.get_card_V()):
+        for edge in G.get_adj_list(u):
+            v = edge.get_v()
+            if u < v:
+                print("(" + str(vertices[u]) + ", " + str(vertices[v]) + ")")
+
+
+def generate_random_graph(card_V, edge_probability, by_adjacency_lists=True,
+                          directed=True, weighted=False, min_weight=0, max_weight=20):
+    """Generate and return a random graph.
+
+    Arguments:
+        card_V -- number of vertices
+        edge_probability -- probability that a given edge is present
+        by_adjacency_lists -- True if the graph is represented by adjacency lists,
+        False if by an adjacency matrix
+        directed -- True if the graph is directed, False if undirected
+        weighted -- True if the graph is weighted, False if unweighted
+        min_weight -- if weighted, the minimum weight of an edge
+        max_weight -- if weighted, the maximum weight of an edge
+
+    Returns:
+        A graph
+        """
+    constructor = AdjacencyListGraph if by_adjacency_lists else AdjacencyMatrixGraph
+    G = constructor(card_V, directed, weighted)
+
+    for u in range(card_V):
+        if directed:
+            min_v = 0
+        else:
+            min_v = u + 1
+
+        for v in range(min_v, card_V):
+            if random() <= edge_probability:  # add edge (u, v)
+                if weighted:
+                    weight = randint(min_weight, max_weight)  # random weight within range
+                else:
+                    weight = None
+                G.insert_edge(u, v, weight)  # guaranteed that edge (u, v) is not already present
+
+    return G
