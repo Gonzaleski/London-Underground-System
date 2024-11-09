@@ -44,8 +44,10 @@ for station in stations:
 
 print(shortest_path_matrix)
 
-# Plotting the correlation map
+# Plotting the travel time heatmap
 plt.figure(figsize=(8, 6))
-sns.heatmap(shortest_path_matrix, annot=True, vmin=-1, vmax=1)
-plt.title("Correlation Map of Shortest Path Travel Times Between Stations")
+sns.heatmap(shortest_path_matrix, annot=True, cmap="YlGnBu")  # Use a color map suitable for distances
+plt.title("Shortest Path Travel Times Between Stations")
+plt.xlabel("Destination")
+plt.ylabel("Source")
 plt.show()
