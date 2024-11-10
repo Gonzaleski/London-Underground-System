@@ -1,4 +1,6 @@
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from clrsPython import dijkstra, AdjacencyListGraph
 
 stations = ['A', 'B', 'C', 'D', 'E']
@@ -22,16 +24,29 @@ graph = AdjacencyListGraph(number_of_stations, True, True)
 for edge in edges:
     graph.insert_edge(stations.index(edge[0]), stations.index(edge[1]), edge[2])
 
-# Shortest path determination using the Dijkstra's algorithm
-for station in stations:
-    d, pi = dijkstra(graph, stations.index(station))
-    print("Shortest path from ", station, " to:")
-    for i in range(number_of_stations):
-        print(stations[i] + ": distance = " + str(d[i]) + ",\tpredecessor = " + ("None" if pi[i] is None else stations[pi[i]]))
+# Shortest path determination using Dijkstra's algorithm
+for start_station in stations:
+    start_index = stations.index(start_station)
+    d, pi = dijkstra(graph, start_index)
+    
+    print(f"Shortest paths from {start_station}:")
+    for end_index in range(number_of_stations):
+        end_station = stations[end_index]
+        # Reconstruct the path from start_station to end_station
+        if d[end_index] == float('inf'):
+            print(f"  No path to {end_station}")
+            continue
+        
+        path = []
+        current = end_index
+        while current is not None:
+            path.append(stations[current])
+            current = pi[current]
+        path.reverse()  # To get the path from start to end
+        
+        # Print path and distance
+        print(f"  Path to {end_station}: {' -> '.join(path)}, Distance: {d[end_index]} minutes")
     print("\n")
-
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # Initialize a distance matrix with infinity for shortest paths
 shortest_path_matrix = pd.DataFrame(float('inf'), index=stations, columns=stations)
@@ -42,7 +57,7 @@ for station in stations:
     for i in range(len(stations)):
         shortest_path_matrix.loc[station, stations[i]] = d[i]  # Update the matrix with shortest path distances
 
-print(shortest_path_matrix)
+print("Shortest path travel time matrix:\n", shortest_path_matrix)
 
 # Plotting the travel time heatmap
 plt.figure(figsize=(8, 6))
