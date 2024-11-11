@@ -1,0 +1,36 @@
+<ScrollView>:
+    do_scroll_x: False
+    do_scroll_y: True
+
+<TubeScreen>:
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            text: "Select Source"
+        
+        Button:
+            id: source_button
+            text: "Select Source"
+            on_release: root.open_source_dialog()
+
+        Label:
+            text: "Select Destination"
+        
+        Button:
+            id: destination_button
+            text: "Select Destination"
+            on_release: root.open_destination_dialog()
+
+        Spinner:
+            id: option_spinner
+            text: "Select Option"
+            values: ["Stops", "Minutes"]
+
+        Button:
+            text: "Calculate"
+            on_release: root.calculate_path()
+
+        Label:
+            id: result_label
+            text: "Result will be shown here"
