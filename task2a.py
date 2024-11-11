@@ -5,8 +5,8 @@ from clrsPython import dijkstra, AdjacencyListGraph
 
 # Define the stations and edges
 stations = ['A', 'B', 'C', 'D', 'E']
-edges = [('A', 'B', 10), ('A', 'D', 5), ('B', 'C', 1), ('B', 'D', 2), ('C', 'E', 4),
-         ('D', 'B', 3), ('D', 'C', 9), ('D', 'E', 2), ('E', 'A', 7), ('E', 'C', 6)]
+edges = [('A', 'B', 1), ('A', 'D', 1), ('B', 'C', 1), ('B', 'D', 1), ('C', 'E', 1),
+         ('D', 'B', 1), ('D', 'C', 1), ('D', 'E', 1), ('E', 'A', 1), ('E', 'C', 1)]
 
 # Adjusted data for stops-based calculation (each adjacent connection is 1 stop)
 stops_data = {
