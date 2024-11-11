@@ -1,6 +1,7 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import networkx as nx
 from clrsPython import dijkstra, AdjacencyListGraph
 
 # Define the stations and edges
@@ -14,6 +15,28 @@ stops_data = {
     "destination": [edge[1] for edge in edges],
     "stops": [1 for _ in edges]  # Each journey has a "stop" count of 1
 }
+
+# Visualize the graph with nodes and edges
+G = nx.DiGraph()  # Directed graph
+
+# Add nodes
+for station in stations:
+    G.add_node(station)
+
+# Add edges with weights
+for edge in edges:
+    G.add_edge(edge[0], edge[1], weight=edge[2])
+
+# Draw the graph
+plt.figure(figsize=(10, 8))
+pos = nx.spring_layout(G)  # Positions nodes in a visually pleasing manner
+nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
+edge_labels = nx.get_edge_attributes(G, 'weight')
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')
+
+plt.title("Tube Network Representation with Travel Times")
+plt.show()
+
 stops_df = pd.DataFrame(stops_data)
 print("Journey Data Based on Number of Stops:\n", stops_df, end="\n\n")
 
