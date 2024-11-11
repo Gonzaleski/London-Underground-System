@@ -1,13 +1,15 @@
 import time
 import random
 import matplotlib.pyplot as plt
+import math
 from clrsPython import dijkstra, AdjacencyListGraph
 
 # Parameters for the experiment
 network_sizes = range(1100, 2001, 100)
 average_times = []
+theoretical_times = []
 
-# Function to generate a tube network with n stations based on number of stops
+# Function to generate a tube network with n stations based on the number of stops
 def generate_network(n):
     edges = []
     for i in range(n - 1):
@@ -42,15 +44,25 @@ for n in network_sizes:
     # Average execution time for this network size
     average_time = total_time / num_pairs
     average_times.append(average_time)
+    
+    # Calculate the theoretical time based on O(n log n)
+    theoretical_time = n * math.log(n)
+    theoretical_times.append(theoretical_time)
+
     print(f"Average execution time for n={n}: {average_time:.2f} ms")
+
+# Normalize theoretical times to align the scale with empirical results
+max_empirical = max(average_times)
+max_theoretical = max(theoretical_times)
+normalized_theoretical_times = [t * (max_empirical / max_theoretical) for t in theoretical_times]
 
 # Plotting results
 plt.figure(figsize=(10, 6))
 plt.plot(network_sizes, average_times, marker='o', label='Empirical Execution Time')
+plt.plot(network_sizes, normalized_theoretical_times, marker='x', linestyle='--', color='orange', label=r'Theoretical $O(n \log n)$ Time')
 plt.xlabel('Network Size (n)')
 plt.ylabel('Average Execution Time (ms)')
-plt.title('Average Execution Time of Dijkstra\'s Algorithm (Number of Stops)')
+plt.title("Average Execution Time of Dijkstra's Algorithm (Number of Stops)")
 plt.legend()
 plt.grid(True)
 plt.show()
-
