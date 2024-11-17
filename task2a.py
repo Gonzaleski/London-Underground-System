@@ -58,7 +58,7 @@ def get_path(pi, start_idx, end_idx):
     return path[::-1]
 
 # Function to compute shortest paths and build a matrix
-def compute_shortest_paths(edges, stations, weight_type):
+def compute_shortest_paths(edges, stations):
     """Compute shortest paths using Dijkstra's algorithm and create a matrix."""
     number_of_stations = len(stations)  # Determine the number of stations
     graph = AdjacencyListGraph(number_of_stations, True, True)  # Initialise a directed graph
@@ -88,11 +88,11 @@ def compute_shortest_paths(edges, stations, weight_type):
     return matrix, paths  # Return the shortest path matrix and the path dictionary
 
 # Compute shortest paths based on journey time
-time_matrix, time_paths = compute_shortest_paths(edges_time, stations, "time")
+time_matrix, time_paths = compute_shortest_paths(edges_time, stations)
 print("Shortest path travel time matrix:\n", time_matrix)
 
 # Compute shortest paths based on number of stops
-stops_matrix, stops_paths = compute_shortest_paths(edges_stops, stations, "stops")
+stops_matrix, stops_paths = compute_shortest_paths(edges_stops, stations)
 print("Shortest path number of stops matrix:\n", stops_matrix)
 
 # Create the heatmaps for travel times and stops
