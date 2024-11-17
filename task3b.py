@@ -19,6 +19,7 @@ graph = AdjacencyListGraph(number_of_stations, directed=False, weighted=True)
 # Track added edges to prevent duplicates
 added_edges = set()
 
+# Iterate through rows and create edges between stations
 for _, row in df.iterrows():
     source_idx = station_indices[row['Source']]
     dest_idx = station_indices[row['Destination']]
@@ -31,6 +32,7 @@ for _, row in df.iterrows():
 # Calculate the number of stops for journeys and store results
 journey_stops = []
 
+# For each station, compute the shortest path to all other stations using Dijkstra's algorithm
 for station in stations:
     station_idx = station_indices[station]
     d, _ = dijkstra(graph, station_idx)  # 'd' gives shortest paths in terms of stops from this station
@@ -53,18 +55,18 @@ longest_path = None
 # Re-run to find the path with the most stops
 for station in stations:
     station_idx = station_indices[station]
-    d, pi = dijkstra(graph, station_idx)
+    d, pi = dijkstra(graph, station_idx)  # Use Dijkstra's algorithm again to get the shortest paths and predecessors
     for i in range(station_idx + 1, number_of_stations):
-        if d[i] == longest_stops:
+        if d[i] == longest_stops:  # Check if the journey matches the longest stops found earlier
             start_station = station
             end_station = stations[i]
             # Trace the path back using pi (predecessors)
             path = [end_station]
             current = i
-            while pi[current] is not None:
+            while pi[current] is not None:  # Reconstruct the path from destination to start using predecessors
                 path.insert(0, stations[pi[current]])
                 current = pi[current]
-            path.insert(0, start_station)
+            path.insert(0, start_station)  # Add start station only once
             longest_path = (start_station, end_station, path)
             break
 
