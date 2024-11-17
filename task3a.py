@@ -65,12 +65,11 @@ for station in stations:
             start_station = station
             end_station = stations[i]
             # Trace the path back using pi (predecessors)
-            path = [end_station]
+            path = []
             current = i
-            while pi[current] is not None:
-                path.insert(0, stations[pi[current]])
+            while current is not None:
+                path.insert(0, stations[current])
                 current = pi[current]
-            path.insert(0, start_station)
             longest_pair = (start_station, end_station, path)
             break
 
