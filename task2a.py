@@ -4,50 +4,51 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from clrsPython import dijkstra, AdjacencyListGraph
 
-# Define the stations and edges
+# Define the stations and edges for both tasks
 stations = ['A', 'B', 'C', 'D', 'E']
-edges = [('A', 'B', 1), ('A', 'D', 1), ('B', 'C', 1), ('B', 'D', 1), ('C', 'E', 1),
-         ('D', 'B', 1), ('D', 'C', 1), ('D', 'E', 1), ('E', 'A', 1), ('E', 'C', 1)]
+edges_time = [('A', 'B', 10), ('A', 'D', 5), ('B', 'C', 1), ('B', 'D', 3), ('C', 'E', 6),
+              ('D', 'B', 3), ('D', 'C', 9), ('D', 'E', 2), ('E', 'A', 7), ('E', 'C', 6)]
+edges_stops = [(edge[0], edge[1], 1) for edge in edges_time]  # Each connection = 1 stop
 
-# Adjusted data for stops-based calculation (each adjacent connection is 1 stop)
-stops_data = {
-    "source": [edge[0] for edge in edges],
-    "destination": [edge[1] for edge in edges],
-    "stops": [1 for _ in edges]  # Each journey has a "stop" count of 1
-}
+# Function to visualize graphs
+def visualize_graphs(edges_time, edges_stops, seed=39):
+    # Create the graphs
+    G_time = nx.DiGraph()
+    G_stops = nx.DiGraph()
+    for edge in edges_time:
+        G_time.add_edge(edge[0], edge[1], weight=edge[2])
+    for edge in edges_stops:
+        G_stops.add_edge(edge[0], edge[1], weight=edge[2])
+    
+    # Define consistent layout
+    pos = nx.spring_layout(G_time, seed=seed)
+    
+    # Create a single figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    
+    # Plot the graph with travel times
+    nx.draw(G_time, pos, ax=axes[0], with_labels=True, node_color='lightblue',
+            node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
+    edge_labels_time = nx.get_edge_attributes(G_time, 'weight')
+    nx.draw_networkx_edge_labels(G_time, pos, edge_labels=edge_labels_time, font_color='red', ax=axes[0])
+    axes[0].set_title("Tube Network (Travel Times)")
+    
+    # Plot the graph with stops
+    nx.draw(G_stops, pos, ax=axes[1], with_labels=True, node_color='lightgreen',
+            node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
+    edge_labels_stops = nx.get_edge_attributes(G_stops, 'weight')
+    nx.draw_networkx_edge_labels(G_stops, pos, edge_labels=edge_labels_stops, font_color='blue', ax=axes[1])
+    axes[1].set_title("Tube Network (Number of Stops)")
+    
+    plt.tight_layout()
+    plt.show()
 
-# Visualize the graph with nodes and edges
-G = nx.DiGraph()  # Directed graph
+# Visualize the graphs
+visualize_graphs(edges_time, edges_stops)
 
-# Add nodes
-for station in stations:
-    G.add_node(station)
-
-# Add edges with weights
-for edge in edges:
-    G.add_edge(edge[0], edge[1], weight=edge[2])
-
-# Draw the graph
-plt.figure(figsize=(10, 8))
-pos = nx.spring_layout(G)  # Positions nodes in a visually pleasing manner
-nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
-edge_labels = nx.get_edge_attributes(G, 'weight')
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')
-
-plt.title("Tube Network Representation with Travel Times")
-plt.show()
-
-stops_df = pd.DataFrame(stops_data)
-print("Journey Data Based on Number of Stops:\n", stops_df, end="\n\n")
-
-# Create the graph for the number of stops
-number_of_stations = len(stations)
-stops_graph = AdjacencyListGraph(number_of_stations, True, True)
-for u, v, weight in zip(stops_data["source"], stops_data["destination"], stops_data["stops"]):
-    stops_graph.insert_edge(stations.index(u), stations.index(v), weight)
-
-# Function to reconstruct the path from the predecessor array
+# Function to reconstruct paths from the predecessor array
 def get_path(pi, start_idx, end_idx):
+    """Reconstruct the shortest path from the predecessor array."""
     path = []
     current = end_idx
     while current != start_idx and current is not None:
@@ -56,37 +57,80 @@ def get_path(pi, start_idx, end_idx):
     path.append(start_idx)
     return path[::-1]
 
-# Initialize a matrix for stops
-stops_matrix = pd.DataFrame(float('inf'), index=stations, columns=stations)
-
-# Calculate paths and populate matrix for the number of stops
-for start_station in stations:
-    start_idx = stations.index(start_station)
+# Function to compute shortest paths and build a matrix
+def compute_shortest_paths(edges, stations, weight_type):
+    """Compute shortest paths using Dijkstra's algorithm and create a matrix."""
+    number_of_stations = len(stations)
+    graph = AdjacencyListGraph(number_of_stations, True, True)
+    for u, v, weight in edges:
+        graph.insert_edge(stations.index(u), stations.index(v), weight)
     
-    # Dijkstra for number of stops
-    d_stops, pi_stops = dijkstra(stops_graph, start_idx)
+    matrix = pd.DataFrame(float('inf'), index=stations, columns=stations)
+    paths = {}  # To store paths for comparison later
     
-    print(f"Shortest paths from {start_station}:")
-    
-    for end_idx in range(number_of_stations):
-        end_station = stations[end_idx]
+    for start_station in stations:
+        start_idx = stations.index(start_station)
+        d, pi = dijkstra(graph, start_idx)
+        paths[start_station] = {}
         
-        # Get path and update stops matrix
-        if d_stops[end_idx] != float('inf'):
-            path_stops = get_path(pi_stops, start_idx, end_idx)
-            path_stops_names = [stations[i] for i in path_stops]
-            stops_matrix.loc[start_station, end_station] = d_stops[end_idx]
-            print(f"  Path to {end_station}: {' -> '.join(path_stops_names)}, Stops: {d_stops[end_idx]}")
+        for end_idx in range(number_of_stations):
+            end_station = stations[end_idx]
+            if d[end_idx] != float('inf'):
+                path = get_path(pi, start_idx, end_idx)
+                matrix.loc[start_station, end_station] = d[end_idx]
+                paths[start_station][end_station] = [stations[i] for i in path]
     
-    print("\n")
+    return matrix, paths
 
-# Display matrix for number of stops
-print("Number of Stops Matrix:\n", stops_matrix)
+# Compute shortest paths based on journey time
+time_matrix, time_paths = compute_shortest_paths(edges_time, stations, "time")
+print("Shortest path travel time matrix:\n", time_matrix)
 
-# Plot heatmap for number of stops
-plt.figure(figsize=(6, 5))
-sns.heatmap(stops_matrix, annot=True, cmap="YlOrBr", fmt=".1f")
-plt.title("Shortest Path Based on Number of Stops Between Stations")
-plt.xlabel("Destination")
-plt.ylabel("Source")
+# Compute shortest paths based on number of stops
+stops_matrix, stops_paths = compute_shortest_paths(edges_stops, stations, "stops")
+print("Shortest path number of stops matrix:\n", stops_matrix)
+
+# Create the heatmaps for travel times and stops
+fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+
+# Plot the heatmap for travel times
+sns.heatmap(time_matrix, annot=True, cmap="YlGnBu", ax=axes[0])
+axes[0].set_title("Shortest Path Travel Times Between Stations")
+axes[0].set_xlabel("Destination")
+axes[0].set_ylabel("Source")
+
+# Plot the heatmap for the number of stops
+sns.heatmap(stops_matrix, annot=True, cmap="YlOrBr", ax=axes[1])
+axes[1].set_title("Shortest Path Number of Stops Between Stations")
+axes[1].set_xlabel("Destination")
+axes[1].set_ylabel("Source")
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
 plt.show()
+
+# Comparison of paths
+comparison_results = []
+for start_station in stations:
+    for end_station in stations:
+        if start_station != end_station:
+            time_path = time_paths[start_station].get(end_station, [])
+            stops_path = stops_paths[start_station].get(end_station, [])
+            identical = time_path == stops_path
+            comparison_results.append({
+                "Start": start_station,
+                "End": end_station,
+                "Time Path": " -> ".join(time_path),
+                "Stops Path": " -> ".join(stops_path),
+                "Identical": identical
+            })
+
+# Display comparison results
+comparison_df = pd.DataFrame(comparison_results)
+print("\nComparison of Shortest Paths Based on Time and Stops:")
+print(comparison_df)
+
+# Display paths with differences
+differences = comparison_df[~comparison_df["Identical"]]
+print("\nPaths with differences:")
+print(differences)
