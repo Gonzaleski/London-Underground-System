@@ -60,27 +60,32 @@ def get_path(pi, start_idx, end_idx):
 # Function to compute shortest paths and build a matrix
 def compute_shortest_paths(edges, stations, weight_type):
     """Compute shortest paths using Dijkstra's algorithm and create a matrix."""
-    number_of_stations = len(stations)
-    graph = AdjacencyListGraph(number_of_stations, True, True)
+    number_of_stations = len(stations)  # Determine the number of stations
+    graph = AdjacencyListGraph(number_of_stations, True, True)  # Initialise a directed graph
+
+    # Add edges to the graph with station indices and weights
     for u, v, weight in edges:
         graph.insert_edge(stations.index(u), stations.index(v), weight)
     
+    # Initialise a matrix to store shortest path distances
     matrix = pd.DataFrame(float('inf'), index=stations, columns=stations)
-    paths = {}  # To store paths for comparison later
+    paths = {}  # Dictionary to store paths for comparison later
     
+    # Loop over each station to calculate the shortest path to all other stations
     for start_station in stations:
-        start_idx = stations.index(start_station)
-        d, pi = dijkstra(graph, start_idx)
-        paths[start_station] = {}
+        start_idx = stations.index(start_station)  # Get the index of the start station
+        d, pi = dijkstra(graph, start_idx)  # Run Dijkstra's algorithm to get distances and predecessors
+        paths[start_station] = {}  # Initialize the path storage for the current start station
         
+        # Loop over each end station to reconstruct the shortest path
         for end_idx in range(number_of_stations):
-            end_station = stations[end_idx]
-            if d[end_idx] != float('inf'):
-                path = get_path(pi, start_idx, end_idx)
-                matrix.loc[start_station, end_station] = d[end_idx]
-                paths[start_station][end_station] = [stations[i] for i in path]
+            end_station = stations[end_idx]  # Get the end station
+            if d[end_idx] != float('inf'):  # If a path exists
+                path = get_path(pi, start_idx, end_idx)  # Reconstruct the path using the predecessors
+                matrix.loc[start_station, end_station] = d[end_idx]  # Update the matrix with the shortest distance
+                paths[start_station][end_station] = [stations[i] for i in path]  # Store the reconstructed path
     
-    return matrix, paths
+    return matrix, paths  # Return the shortest path matrix and the path dictionary
 
 # Compute shortest paths based on journey time
 time_matrix, time_paths = compute_shortest_paths(edges_time, stations, "time")
