@@ -73,6 +73,10 @@ for station in stations:
             longest_pair = (start_station, end_station, path)
             break
 
+# Total number of journey durations calculated
+total_journey_durations = len(journey_durations)
+print(f"Total number of journey durations calculated: {total_journey_durations}")
+
 # Display longest journey details
 print(f"The longest journey duration is {longest_duration} minutes.")
 print(f"Path: {' -> '.join(longest_pair[2])}")
