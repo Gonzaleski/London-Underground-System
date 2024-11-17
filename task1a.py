@@ -1,5 +1,3 @@
-import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 import networkx as nx
 from clrsPython import dijkstra, AdjacencyListGraph
@@ -7,13 +5,6 @@ from clrsPython import dijkstra, AdjacencyListGraph
 stations = ['A', 'B', 'C', 'D', 'E']
 edges = [('A', 'B', 10), ('A', 'D', 5), ('B', 'C', 1), ('B', 'D', 2), ('C', 'E', 4),
          ('D', 'B', 3), ('D', 'C', 9), ('D', 'E', 2), ('E', 'A', 7), ('E', 'C', 6)]
-
-# Create an artificial dataset for a tube network with 5 stations (A, B, C, D, E)
-data = {
-    "source": [edge[0] for edge in edges],
-    "destination": [edge[1] for edge in edges],
-    "estimated time": [edge[2] for edge in edges]  # in minutes
-}
 
 # Visualize the graph with nodes and edges
 G = nx.DiGraph()  # Directed graph
@@ -35,10 +26,6 @@ nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')
 
 plt.title("Tube Network Representation with Travel Times")
 plt.show()
-
-# Create DataFrame
-df = pd.DataFrame(data)
-print(df, end="\n\n")
 
 # Create a graph using AdjacencyListGraph for shortest path computation
 number_of_stations = len(stations)
@@ -68,21 +55,32 @@ for start_station in stations:
         print(f"  Path to {end_station}: {' -> '.join(path)}, Distance: {d[end_index]} minutes")
     print("\n")
 
-# Initialize a distance matrix with infinity for shortest paths
-shortest_path_matrix = pd.DataFrame(float('inf'), index=stations, columns=stations)
+# Prompt the user for source and destination inputs and compute the shortest path
+while True:
+    source = input("Enter the source station: ").strip().upper()
+    destination = input("Enter the destination station: ").strip().upper()
 
-# Populate the shortest path matrix using Dijkstra's algorithm
-for station in stations:
-    d, _ = dijkstra(graph, stations.index(station))
-    for i in range(len(stations)):
-        shortest_path_matrix.loc[station, stations[i]] = d[i]
+    if source in stations and destination in stations:
+        start_index = stations.index(source)
+        d, pi = dijkstra(graph, start_index)
+        end_index = stations.index(destination)
 
-print("Shortest path travel time matrix:\n", shortest_path_matrix)
+        if d[end_index] == float('inf'):
+            print(f"No path exists between {source} and {destination}.")
+        else:
+            path = []
+            current = end_index
+            while current is not None:
+                path.append(stations[current])
+                current = pi[current]
+            path.reverse()  # Get the path from source to destination
+            print(f"Shortest path from {source} to {destination}: {' -> '.join(path)}")
+            print(f"Travel time: {d[end_index]} minutes")
+    else:
+        print("Invalid source or destination station.")
 
-# Plotting the travel time heatmap
-plt.figure(figsize=(8, 6))
-sns.heatmap(shortest_path_matrix, annot=True, cmap="YlGnBu")
-plt.title("Shortest Path Travel Times Between Stations")
-plt.xlabel("Destination")
-plt.ylabel("Source")
-plt.show()
+    # Ask the user if they want to try again
+    try_again = input("Do you want to find another path? (y/n): ").strip().lower()
+    if try_again != 'y':
+        print("Thank you for using the Tube Network Path Finder. Goodbye!")
+        break
