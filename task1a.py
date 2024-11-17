@@ -34,29 +34,6 @@ graph = AdjacencyListGraph(number_of_stations, True, True)  # Create a directed,
 for edge in edges:
     graph.insert_edge(stations.index(edge[0]), stations.index(edge[1]), edge[2])  # Add edges with weights
 
-# Compute and display shortest paths from each station using Dijkstra's algorithm
-for start_station in stations:
-    start_index = stations.index(start_station)  # Index of the start station
-    d, pi = dijkstra(graph, start_index)  # Get shortest path distances and predecessors
-    
-    print(f"Shortest paths from {start_station}:")
-    for end_index in range(number_of_stations):
-        end_station = stations[end_index]  # Determine the end station
-        if d[end_index] == float('inf'):  # Check if the destination is unreachable
-            print(f"  No path to {end_station}")
-            continue
-        
-        # Trace the path from start to end station
-        path = []
-        current = end_index
-        while current is not None:
-            path.append(stations[current])
-            current = pi[current]
-        path.reverse()  # Reverse to display the path in correct order
-        
-        print(f"  Path to {end_station}: {' -> '.join(path)}, Distance: {d[end_index]} minutes")
-    print("\n")
-
 # Interactive section to allow users to query shortest paths
 while True:
     # Prompt user for source and destination stations
