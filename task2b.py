@@ -24,7 +24,7 @@ def generate_network(n):
 for n in network_sizes:
     # Generate a graph with n stations
     edges = generate_network(n)
-    graph = AdjacencyListGraph(n, True, True)  # Initialize the graph with n stations and directed, weighted edges
+    graph = AdjacencyListGraph(n, True, True)  # Initialise the graph with n stations and directed, weighted edges
     for u, v, weight in edges:
         try:
             graph.insert_edge(u, v, weight)  # Insert each edge into the graph
@@ -52,15 +52,15 @@ for n in network_sizes:
     # Print the empirical average execution time for the current network size
     print(f"Average execution time for n={n}: {average_time:.2f} ms")
 
-# Normalize theoretical times to align the scale with empirical results
+# Normalise theoretical times to align the scale with empirical results
 max_empirical = max(average_times)  # Find the maximum empirical time
 max_theoretical = max(theoretical_times)  # Find the maximum theoretical time
-normalized_theoretical_times = [t * (max_empirical / max_theoretical) for t in theoretical_times]  # Normalize
+normalized_theoretical_times = [t * (max_empirical / max_theoretical) for t in theoretical_times]
 
 # Plotting results: comparison between empirical and normalized theoretical times
 plt.figure(figsize=(10, 6))
 plt.plot(network_sizes, average_times, marker='o', label='Empirical Execution Time')  # Empirical data points
-plt.plot(network_sizes, normalized_theoretical_times, marker='x', linestyle='--', color='orange', label=r'Theoretical $O(n \log n)$ Time')  # Normalized theoretical curve
+plt.plot(network_sizes, normalized_theoretical_times, marker='x', linestyle='--', color='orange', label=r'Theoretical $O(n \log n)$ Time')  # Normalised theoretical curve
 plt.xlabel('Network Size (n)')  # X-axis label
 plt.ylabel('Average Execution Time (ms)')  # Y-axis label
 plt.title("Average Execution Time of Dijkstra's Algorithm (Number of Stops)")  # Plot title
