@@ -52,24 +52,34 @@ plt.xlabel('Journey Duration (minutes)')
 plt.ylabel('Frequency')
 plt.show()
 
-# Find the longest journey duration and its path
+# Find the longest journey duration by determining the maximum value in the journey_durations list
 longest_duration = max(journey_durations)
+
+# Initialise variable to store the journey pair with the longest duration
 longest_pair = None
 
-# Re-run to find the path with the longest journey duration
+# Iterate over all stations to calculate the longest journey duration and the corresponding path
 for station in stations:
     station_idx = station_indices[station]
+    
+    # Perform Dijkstra's algorithm to find the shortest distances (d) and predecessors (pi) from the current station
     d, pi = dijkstra(graph, station_idx)
+    
+    # Iterate over all other stations to find the pair with the longest journey duration
     for i in range(station_idx + 1, number_of_stations):
         if d[i] == longest_duration:
+            # Store the start and end stations for the longest journey
             start_station = station
             end_station = stations[i]
-            # Trace the path back using pi (predecessors)
+            
+            # Trace the path back from the destination station using the predecessors (pi) array
             path = []
             current = i
             while current is not None:
-                path.insert(0, stations[current])
-                current = pi[current]
+                path.insert(0, stations[current])  # Insert each station at the beginning to form the correct path
+                current = pi[current]  # Move to the predecessor station
+            
+            # Store the journey pair (start station, end station, path) as the longest journey
             longest_pair = (start_station, end_station, path)
             break
 
