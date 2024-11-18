@@ -75,7 +75,7 @@ def compute_shortest_paths(edges, stations):
     for start_station in stations:
         start_idx = stations.index(start_station)  # Get the index of the start station
         d, pi = dijkstra(graph, start_idx)  # Run Dijkstra's algorithm to get distances and predecessors
-        paths[start_station] = {}  # Initialize the path storage for the current start station
+        paths[start_station] = {}  # Initialise the path storage for the current start station
         
         # Loop over each end station to reconstruct the shortest path
         for end_idx in range(number_of_stations):
