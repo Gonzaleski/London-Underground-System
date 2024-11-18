@@ -36,7 +36,7 @@ journey_stops = []
 for station in stations:
     station_idx = station_indices[station]
     d, _ = dijkstra(graph, station_idx)  # 'd' gives shortest paths in terms of stops from this station
-    for i in range(station_idx + 1, number_of_stations):  # Avoid duplicates by only storing upper-triangle entries
+    for i in range(station_idx + 1, number_of_stations):  # Avoid duplicates
         if d[i] < float('inf'):  # If reachable
             journey_stops.append(d[i])
 
@@ -48,11 +48,14 @@ plt.xlabel('Number of Stops')
 plt.ylabel('Frequency')
 plt.show()
 
+# Display the total number of journey durations calculated
+print(f"Total number of journey durations calculated: {len(journey_stops)}")
+
 # Find the longest journey in terms of stops and its path
 longest_stops = max(journey_stops)
 longest_path = None
 
-# Re-run to find the path with the most stops
+# Find the path with the most stops
 for station in stations:
     station_idx = station_indices[station]
     d, pi = dijkstra(graph, station_idx)  # Use Dijkstra's algorithm again to get the shortest paths and predecessors
@@ -61,11 +64,14 @@ for station in stations:
             start_station = station
             end_station = stations[i]
             # Trace the path back using pi (predecessors)
-            path = [end_station]
+            path = []
             current = i
-            while pi[current] is not None:  # Reconstruct the path from destination to start using predecessors
-                path.insert(0, stations[pi[current]])
+            while current is not None:  # Reconstruct the path from destination to start using predecessors
+                path.insert(0, stations[current])  # Add stations to the front of the path
                 current = pi[current]
+            # Remove the start station if it's already in the path
+            if path[0] == start_station:
+                path = path[1:]
             path.insert(0, start_station)  # Add start station only once
             longest_path = (start_station, end_station, path)
             break
