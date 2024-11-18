@@ -1,5 +1,10 @@
 import matplotlib.pyplot as plt
-import networkx as nx
+try:
+    import networkx as nx
+except ImportError:
+    print("To see the graph, please install the 'networkx' library using pip.")
+    nx = None
+
 from clrsPython import dijkstra, AdjacencyListGraph
 
 # Define the stations and edges of the artificial network
@@ -7,26 +12,27 @@ stations = ['A', 'B', 'C', 'D', 'E']
 edges = [('A', 'B', 10), ('A', 'D', 5), ('B', 'C', 1), ('B', 'D', 3), ('C', 'E', 6),
          ('D', 'B', 3), ('D', 'C', 9), ('D', 'E', 2), ('E', 'A', 7), ('E', 'C', 6)]
 
-# Visualize the graph with nodes and edges
-G = nx.DiGraph()  # Create a directed graph
+# Visualise the graph with nodes and edges
+if nx:
+    G = nx.DiGraph()  # Create a directed graph
 
-# Add nodes to the graph
-for station in stations:
-    G.add_node(station)
+    # Add nodes to the graph
+    for station in stations:
+        G.add_node(station)
 
-# Add edges with weights to the graph
-for edge in edges:
-    G.add_edge(edge[0], edge[1], weight=edge[2])
+    # Add edges with weights to the graph
+    for edge in edges:
+        G.add_edge(edge[0], edge[1], weight=edge[2])
 
-# Draw the graph with positions, labels, and weights
-plt.figure(figsize=(10, 8))
-pos = nx.spring_layout(G, seed = 40)  # Use spring layout for better visualization
-nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
-edge_labels = nx.get_edge_attributes(G, 'weight')  # Extract edge weights
-nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')  # Display edge weights
+    # Draw the graph with positions, labels, and weights
+    plt.figure(figsize=(10, 8))
+    pos = nx.spring_layout(G, seed = 40)  # Use spring layout for better visualisation
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
+    edge_labels = nx.get_edge_attributes(G, 'weight')  # Extract edge weights
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')  # Display edge weights
 
-plt.title("Tube Network Representation with Travel Times")  # Title for the graph
-plt.show()
+    plt.title("Tube Network Representation with Travel Times")  # Title for the graph
+    plt.show()
 
 # Create a graph using AdjacencyListGraph for shortest path computation
 number_of_stations = len(stations)  # Total number of stations in the graph

@@ -1,7 +1,11 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import networkx as nx
+try:
+    import networkx as nx
+except ImportError:
+    print("The 'networkx' library is not installed. To see the graph, please install it using 'pip install networkx'.")
+    nx = None
 from clrsPython import dijkstra, AdjacencyListGraph
 
 # Define the stations and edges for both tasks
@@ -10,41 +14,42 @@ edges_time = [('A', 'B', 10), ('A', 'D', 5), ('B', 'C', 1), ('B', 'D', 3), ('C',
               ('D', 'B', 3), ('D', 'C', 9), ('D', 'E', 2), ('E', 'A', 7), ('E', 'C', 6)]
 edges_stops = [(edge[0], edge[1], 1) for edge in edges_time]  # Each connection = 1 stop
 
-# Function to visualize graphs
-def visualize_graphs(edges_time, edges_stops, seed=39):
-    # Create the graphs
-    G_time = nx.DiGraph()
-    G_stops = nx.DiGraph()
-    for edge in edges_time:
-        G_time.add_edge(edge[0], edge[1], weight=edge[2])
-    for edge in edges_stops:
-        G_stops.add_edge(edge[0], edge[1], weight=edge[2])
-    
-    # Define consistent layout
-    pos = nx.spring_layout(G_time, seed=seed)
-    
-    # Create a single figure with two subplots
-    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
-    
-    # Plot the graph with travel times
-    nx.draw(G_time, pos, ax=axes[0], with_labels=True, node_color='lightblue',
-            node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
-    edge_labels_time = nx.get_edge_attributes(G_time, 'weight')
-    nx.draw_networkx_edge_labels(G_time, pos, edge_labels=edge_labels_time, font_color='red', ax=axes[0])
-    axes[0].set_title("Tube Network (Travel Times)")
-    
-    # Plot the graph with stops
-    nx.draw(G_stops, pos, ax=axes[1], with_labels=True, node_color='lightgreen',
-            node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
-    edge_labels_stops = nx.get_edge_attributes(G_stops, 'weight')
-    nx.draw_networkx_edge_labels(G_stops, pos, edge_labels=edge_labels_stops, font_color='blue', ax=axes[1])
-    axes[1].set_title("Tube Network (Number of Stops)")
-    
-    plt.tight_layout()
-    plt.show()
+# Function to visualise graphs
+def visualise_graphs(edges_time, edges_stops, seed=39):
+    if nx:
+        # Create the graphs
+        G_time = nx.DiGraph()
+        G_stops = nx.DiGraph()
+        for edge in edges_time:
+            G_time.add_edge(edge[0], edge[1], weight=edge[2])
+        for edge in edges_stops:
+            G_stops.add_edge(edge[0], edge[1], weight=edge[2])
+        
+        # Define consistent layout
+        pos = nx.spring_layout(G_time, seed=seed)
+        
+        # Create a single figure with two subplots
+        fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+        
+        # Plot the graph with travel times
+        nx.draw(G_time, pos, ax=axes[0], with_labels=True, node_color='lightblue',
+                node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
+        edge_labels_time = nx.get_edge_attributes(G_time, 'weight')
+        nx.draw_networkx_edge_labels(G_time, pos, edge_labels=edge_labels_time, font_color='red', ax=axes[0])
+        axes[0].set_title("Tube Network (Travel Times)")
+        
+        # Plot the graph with stops
+        nx.draw(G_stops, pos, ax=axes[1], with_labels=True, node_color='lightgreen',
+                node_size=2000, font_size=10, font_weight='bold', arrowsize=20)
+        edge_labels_stops = nx.get_edge_attributes(G_stops, 'weight')
+        nx.draw_networkx_edge_labels(G_stops, pos, edge_labels=edge_labels_stops, font_color='blue', ax=axes[1])
+        axes[1].set_title("Tube Network (Number of Stops)")
+        
+        plt.tight_layout()
+        plt.show()
 
-# Visualize the graphs
-visualize_graphs(edges_time, edges_stops)
+# Visualise the graphs
+visualise_graphs(edges_time, edges_stops)
 
 # Function to reconstruct paths from the predecessor array
 def get_path(pi, start_idx, end_idx):
