@@ -34,7 +34,7 @@ mst_graph = kruskal(full_graph)
 
 # Function to calculate shortest paths and journey durations
 def calculate_shortest_paths(graph, stations, station_indices):
-    # Initialize a matrix to store the shortest path between all stations
+    # Initialise a matrix to store the shortest path between all stations
     shortest_path_matrix = pd.DataFrame(float('inf'), index=stations, columns=stations)
     
     # Calculate shortest paths using Dijkstra's algorithm for each station
